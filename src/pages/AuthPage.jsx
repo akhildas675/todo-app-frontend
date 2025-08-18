@@ -2,11 +2,14 @@ import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { loginSuccess, registerSuccess } from "../features/auth/authSlice";
 import { loginUser, registerUser } from "../services/api"
+import { useNavigate } from "react-router-dom";
 
 const AuthPage = () => {
   const [isLogin, setLogin] = useState(true);
   const [formData, setFormData] = useState({ username: "", email: "", password: "" });
   const dispatch = useDispatch();
+
+  const navigate=useNavigate()
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -15,16 +18,20 @@ const AuthPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      let data;
       if (isLogin) {
-        const data = await loginUser({
+         data = await loginUser({
           email: formData.email,
           password: formData.password,
         });
         dispatch(loginSuccess(data));
+        navigate('/home')
       } else {
-        const data = await registerUser(formData);
+         data = await registerUser(formData);
         dispatch(registerSuccess(data));
       }
+
+      localStorage.setItem("token",data.token)
     } catch (err) {
       console.error("Auth error:", err.response?.data?.message || err.message);
     }

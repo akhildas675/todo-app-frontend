@@ -1,26 +1,29 @@
-import React from 'react';
+import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-import { BrowserRouter,Router } from 'react-router-dom';
-
-
-import AuthPage from './pages/AuthPage';
-import { Provider } from 'react-redux';
-import store from './app/store';
+import AuthPage from "./pages/AuthPage";
+import HomePage from "./pages/HomePage"; 
+import { Provider } from "react-redux";
+import store from "./app/store";
 
 const App = () => {
   return (
-    <div>
-
-      <Provider store={store}>
+    <Provider store={store}>
 
 
+      <BrowserRouter>
+        <Routes>
 
-      <AuthPage/>
-      
-      
-      </Provider>
-    </div>
+
+          <Route path="/" element={<AuthPage />} />
+
+          <Route path="/home" element={<HomePage />} />
+
+
+        </Routes>
+      </BrowserRouter>
+    </Provider>
   );
-}
+};
 
 export default App;
