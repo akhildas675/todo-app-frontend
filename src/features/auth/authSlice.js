@@ -23,7 +23,7 @@ const authSlice = createSlice({
             
            
             localStorage.setItem('token', action.payload.token);
-            localStorage.setItem('user', JSON.stringify(action.payload.user));
+            
         },
 
         registerSuccess: (state, action) => {
@@ -32,7 +32,7 @@ const authSlice = createSlice({
             state.isAuthenticated = true;
             
             localStorage.setItem('token', action.payload.token);
-            localStorage.setItem('user', JSON.stringify(action.payload.user));
+           
         },
 
         logout: (state) => {
@@ -42,7 +42,7 @@ const authSlice = createSlice({
             
             
             localStorage.removeItem('token');
-            localStorage.removeItem('user');
+           
         }
     }
 });

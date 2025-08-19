@@ -42,7 +42,8 @@ const HomePage = () => {
                 const data = await getTodoTask();
                 dispatch(setTodo(data));
                
-                toast.success('Tasks loaded successfully!');
+                // toast.success('Tasks loaded successfully!');
+
             } catch (error) {
                 console.error('Fetch todos error:', error);
                 setError(error.message || 'Failed to fetch todos');
@@ -227,6 +228,18 @@ const HomePage = () => {
     return (
         <div className="bg-black min-h-screen flex justify-center items-start pt-10">
             <div className="w-full max-w-md bg-gray-900 p-6 rounded-lg shadow-lg text-white">
+                 {error && (
+                    <div className="bg-red-600 text-white p-3 rounded mb-4 text-sm">
+                        {error}
+                        <button 
+                            onClick={() => setError('')} 
+                            className="ml-2 font-bold"
+                        >
+                            ×
+                        </button>
+                    </div>
+                )}
+
               
                 <div className="flex justify-between items-center mb-4">
                     <h1 className="text-2xl font-bold">Welcome, {user?.name || 'User'}</h1>
@@ -239,18 +252,7 @@ const HomePage = () => {
                 </div>
 
              
-                {error && (
-                    <div className="bg-red-600 text-white p-3 rounded mb-4 text-sm">
-                        {error}
-                        <button 
-                            onClick={() => setError('')} 
-                            className="ml-2 font-bold"
-                        >
-                            ×
-                        </button>
-                    </div>
-                )}
-
+               
             
                 <div className="flex flex-col gap-2 mb-6">
                     <input
