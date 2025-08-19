@@ -126,7 +126,7 @@ const HomePage = () => {
             setEditTask('');
             setEditDescription('');
        
-            toast.success('Task updated successfully! ✏️');
+            toast.success('Task updated success');
         } catch (error) {
             console.error('Edit task error:', error);
             setError(error.message || 'Failed to edit task');
@@ -152,7 +152,7 @@ const HomePage = () => {
             await deleteTodoTask(id);
             dispatch(deleteTodo(id));
           
-            toast.success('Task deleted successfully! 🗑️');
+            toast.success('Task deleted success');
         } catch (error) {
             console.error('Delete task error:', error);
             setError(error.message || 'Failed to delete task');
