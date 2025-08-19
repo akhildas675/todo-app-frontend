@@ -2,10 +2,9 @@ import axios from "axios";
 
 const API_URL = "http://localhost:4000/todos";
 
-// Helper to get auth headers
 const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
-  console.log("Token from localStorage:", token); // Debug log
+  // console.log("Token from localStorage:", token); 
   
   if (!token) {
     throw new Error("No authentication token found. Please login again.");
@@ -19,7 +18,6 @@ const getAuthHeaders = () => {
   };
 };
 
-// Get all todos
 export const getTodoTask = async () => {
   try {
     const res = await axios.get(API_URL, getAuthHeaders());
@@ -30,12 +28,12 @@ export const getTodoTask = async () => {
   }
 };
 
-// Add a new todo
+
 export const addTodoTask = async (todoData) => {
   try {
     console.log("Adding todo:", todoData); // Debug log
     
-    // Validate data before sending
+  
     if (!todoData.task || todoData.task.trim() === "") {
       throw new Error("Task is required");
     }
@@ -48,14 +46,14 @@ export const addTodoTask = async (todoData) => {
   }
 };
 
-// Edit a todo
+
 export const editTodoTask = async (id, todoData) => {
   try {
     if (!id) {
       throw new Error("Todo ID is required");
     }
     
-    console.log("Editing todo:", id, todoData); // Debug log
+    // console.log("Editing todo:", id, todoData);
     const res = await axios.put(`${API_URL}/${id}`, todoData, getAuthHeaders());
     return res.data;
   } catch (error) {
@@ -64,7 +62,6 @@ export const editTodoTask = async (id, todoData) => {
   }
 };
 
-// Delete a todo
 export const deleteTodoTask = async (id) => {
   try {
     if (!id) {

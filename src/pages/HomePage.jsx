@@ -4,6 +4,7 @@ import { logout } from '../features/auth/authSlice';
 import { useSelector, useDispatch } from 'react-redux';
 import { getTodoTask, addTodoTask, editTodoTask, deleteTodoTask } from '../services/todoServices';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify'; // Import toast
 
 const HomePage = () => {
     const { user, token, isAuthenticated } = useSelector((state) => state.auth);
@@ -13,13 +14,16 @@ const HomePage = () => {
 
     const [task, setTask] = useState('');
     const [description, setDescription] = useState('');
-    
-  
-    const [addingTask, setAddingTask] = useState(false);
     const [error, setError] = useState('');
+    
+    //task add delete update and edit 
+    const [addingTask, setAddingTask] = useState(false);
     const [deletingIds, setDeletingIds] = useState(new Set());
     const [updatingIds, setUpdatingIds] = useState(new Set());
-
+    
+    const [editingId, setEditingId] = useState(null);
+    const [editTask, setEditTask] = useState('');
+    const [editDescription, setEditDescription] = useState('');
     
     useEffect(() => {
         if (!isAuthenticated || !token) {
@@ -34,15 +38,17 @@ const HomePage = () => {
             if (!isAuthenticated || !token) return;
             
             try {
-                
                 setError('');
                 const data = await getTodoTask();
                 dispatch(setTodo(data));
+                // Show success toast when tasks are loaded
+                toast.success('Tasks loaded successfully!');
             } catch (error) {
                 console.error('Fetch todos error:', error);
                 setError(error.message || 'Failed to fetch todos');
+                // Show error toast
+                toast.error(error.message || 'Failed to fetch todos');
                 
-        
                 if (error.message.includes('token') || error.message.includes('unauthorized')) {
                     handleLogout();
                 }
@@ -55,6 +61,7 @@ const HomePage = () => {
     const handleAddTask = async () => {
         if (!task.trim()) {
             setError('Task is required');
+            toast.error('Task is required');
             return;
         }
 
@@ -67,18 +74,73 @@ const HomePage = () => {
                 description: description.trim(),
                 status: "pending"
             });
-
+            
             dispatch(addTodo(newTask));
             setTask('');
             setDescription('');
+            // Show success toast
+            toast.success('Task added successfully! 🎉');
         } catch (error) {
             console.error('Add task error:', error);
             setError(error.message || 'Failed to add task');
+            toast.error(error.message || 'Failed to add task'); 
             if (error.message.includes('token') || error.message.includes('unauthorized')) {
                 handleLogout();
             }
         } finally {
             setAddingTask(false);
+        }
+    };
+
+    const handleEdit = (todo) => {
+        setEditingId(todo._id);
+        setEditTask(todo.task);
+        setEditDescription(todo.description || '');
+    };
+
+    const handleCancelEdit = () => {
+        setEditingId(null);
+        setEditTask('');
+        setEditDescription('');
+       
+    };
+
+    const handleSaveEdit = async (id) => {
+        if (!editTask.trim()) {
+            setError('Task is required');
+            toast.error('Task is required');
+            return;
+        }
+
+        try {
+            setUpdatingIds(prev => new Set([...prev, id]));
+            setError('');
+            
+            const updatedTodo = await editTodoTask(id, {
+                task: editTask.trim(),
+                description: editDescription.trim()
+            });
+
+            dispatch(updateTodo(updatedTodo));
+            setEditingId(null);
+            setEditTask('');
+            setEditDescription('');
+       
+            toast.success('Task updated successfully! ✏️');
+        } catch (error) {
+            console.error('Edit task error:', error);
+            setError(error.message || 'Failed to edit task');
+            toast.error(error.message || 'Failed to edit task');
+            
+            if (error.message.includes('token') || error.message.includes('unauthorized')) {
+                handleLogout();
+            }
+        } finally {
+            setUpdatingIds(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(id);
+                return newSet;
+            });
         }
     };
 
@@ -89,10 +151,12 @@ const HomePage = () => {
             
             await deleteTodoTask(id);
             dispatch(deleteTodo(id));
+            // Show success toast
+            toast.success('Task deleted successfully! 🗑️');
         } catch (error) {
             console.error('Delete task error:', error);
             setError(error.message || 'Failed to delete task');
-            
+            toast.error(error.message || 'Failed to delete task'); 
             
             if (error.message.includes('token') || error.message.includes('unauthorized')) {
                 handleLogout();
@@ -117,11 +181,17 @@ const HomePage = () => {
             });
 
             dispatch(updateTodo(updated));
+            
+            if (updated.status === "completed") {
+                toast.success('Task marked as completed');
+            } else {
+                toast.info('Task marked as pending!');
+            }
         } catch (error) {
             console.error('Update status error:', error);
             setError(error.message || 'Failed to update task status');
+            toast.error(error.message || 'Failed to update task status');
             
-         
             if (error.message.includes('token') || error.message.includes('unauthorized')) {
                 handleLogout();
             }
@@ -137,6 +207,7 @@ const HomePage = () => {
     const handleLogout = () => {
         dispatch(logout()); 
         navigate('/auth');
+        toast.info('Logged out successfully');
     };
 
     const handleKeyPress = (e) => {
@@ -145,6 +216,13 @@ const HomePage = () => {
         }
     };
 
+    const handleEditKeyPress = (e, id) => {
+        if (e.key === 'Enter') {
+            handleSaveEdit(id);
+        } else if (e.key === 'Escape') {
+            handleCancelEdit();
+        }
+    };
 
     return (
         <div className="bg-black min-h-screen flex justify-center items-start pt-10">
@@ -219,75 +297,130 @@ const HomePage = () => {
                     {todos.length === 0 ? (
                         <div className="text-center text-gray-400 py-8">
                             <p>No Task, Please Add Task</p>
-                            
                         </div>
                     ) : (
                         todos.map((todo) => (
                             <div
                                 key={todo._id}
-                                className="p-4 bg-gray-800 rounded flex justify-between items-center transition-opacity"
+                                className="p-4 bg-gray-800 rounded transition-opacity"
                                 style={{ 
                                     opacity: deletingIds.has(todo._id) ? 0.5 : 1 
                                 }}
                             >
-                                <div className="flex-1 mr-4">
-                                    <h3
-                                        className={`text-lg font-semibold ${
-                                            todo.status === "completed" 
-                                                ? "line-through text-gray-400" 
-                                                : "text-white"
-                                        }`}
-                                    >
-                                        {todo.task}
-                                    </h3>
-                                    {todo.description && (
-                                        <p className={`text-sm ${
-                                            todo.status === "completed" 
-                                                ? "text-gray-500" 
-                                                : "text-gray-300"
-                                        }`}>
-                                            {todo.description}
-                                        </p>
-                                    )}
-                                    {todo.createdAt && (
-                                        <p className="text-xs text-gray-500 mt-1">
-                                            Created: {new Date(todo.createdAt).toLocaleDateString()}
-                                        </p>
-                                    )}
-                                </div>
-                                
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => handleStatus(todo)}
-                                        disabled={updatingIds.has(todo._id)}
-                                        className={`px-3 py-1 rounded text-sm font-semibold transition-colors ${
-                                            updatingIds.has(todo._id)
-                                                ? "bg-gray-600 cursor-not-allowed"
-                                                : todo.status === "pending" 
-                                                    ? "bg-yellow-600 hover:bg-yellow-700" 
-                                                    : "bg-green-600 hover:bg-green-700"
-                                        }`}
-                                    >
-                                        {updatingIds.has(todo._id) 
-                                            ? "..." 
-                                            : todo.status === "pending" 
-                                                ? "Pending" 
-                                                : "Done"
-                                        }
-                                    </button>
-                                    
-                                    <button
-                                        onClick={() => handleDelete(todo._id)}
-                                        disabled={deletingIds.has(todo._id)}
-                                        className={`px-3 py-1 rounded text-sm font-semibold transition-colors ${
-                                            deletingIds.has(todo._id)
-                                                ? "bg-gray-600 cursor-not-allowed"
-                                                : "bg-red-600 hover:bg-red-700"
-                                        }`}
-                                    >
-                                        {deletingIds.has(todo._id) ? "..." : "Delete"}
-                                    </button>
-                                </div>
+                                {editingId === todo._id ? (
+                              
+                                    <div className="flex flex-col gap-2">
+                                        <input
+                                            type="text"
+                                            value={editTask}
+                                            onChange={(e) => setEditTask(e.target.value)}
+                                            onKeyPress={(e) => handleEditKeyPress(e, todo._id)}
+                                            className="p-2 rounded bg-gray-700 border border-gray-600 focus:border-indigo-500 focus:outline-none text-white"
+                                            maxLength={100}
+                                            autoFocus
+                                        />
+                                        <input
+                                            type="text"
+                                            value={editDescription}
+                                            onChange={(e) => setEditDescription(e.target.value)}
+                                            onKeyPress={(e) => handleEditKeyPress(e, todo._id)}
+                                            placeholder="Description (optional)"
+                                            className="p-2 rounded bg-gray-700 border border-gray-600 focus:border-indigo-500 focus:outline-none text-white"
+                                            maxLength={200}
+                                        />
+                                        <div className="flex gap-2 mt-2">
+                                            <button
+                                                onClick={() => handleSaveEdit(todo._id)}
+                                                disabled={updatingIds.has(todo._id) || !editTask.trim()}
+                                                className={`px-3 py-1 rounded text-sm font-semibold transition-colors ${
+                                                    updatingIds.has(todo._id) || !editTask.trim()
+                                                        ? 'bg-gray-600 cursor-not-allowed'
+                                                        : 'bg-green-600 hover:bg-green-700'
+                                                }`}
+                                            >
+                                                {updatingIds.has(todo._id) ? 'Saving...' : 'Save'}
+                                            </button>
+                                            <button
+                                                onClick={handleCancelEdit}
+                                                className="px-3 py-1 rounded text-sm font-semibold bg-gray-600 hover:bg-gray-700 transition-colors"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                        <div className="text-xs text-gray-400 mt-1">
+                                            Press Enter to save, Escape to cancel
+                                        </div>
+                                    </div>
+                                ) : (
+                                  
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex-1 mr-4">
+                                            <h3
+                                                className={`text-lg font-semibold ${
+                                                    todo.status === "completed" 
+                                                        ? "line-through text-gray-400" 
+                                                        : "text-white"
+                                                }`}
+                                            >
+                                                {todo.task}
+                                            </h3>
+                                            {todo.description && (
+                                                <p className={`text-sm ${
+                                                    todo.status === "completed" 
+                                                        ? "text-gray-500" 
+                                                        : "text-gray-300"
+                                                }`}>
+                                                    {todo.description}
+                                                </p>
+                                            )}
+                                            {todo.createdAt && (
+                                                <p className="text-xs text-gray-500 mt-1">
+                                                    Created: {new Date(todo.createdAt).toLocaleDateString()}
+                                                </p>
+                                            )}
+                                        </div>
+                                        
+                                        <div className="flex gap-2 flex-wrap">
+                                            <button
+                                                onClick={() => handleStatus(todo)}
+                                                disabled={updatingIds.has(todo._id)}
+                                                className={`px-3 py-1 rounded text-sm font-semibold transition-colors ${
+                                                    updatingIds.has(todo._id)
+                                                        ? "bg-gray-600 cursor-not-allowed"
+                                                        : todo.status === "pending" 
+                                                            ? "bg-yellow-600 hover:bg-yellow-700" 
+                                                            : "bg-green-600 hover:bg-green-700"
+                                                }`}
+                                            >
+                                                {updatingIds.has(todo._id) 
+                                                    ? "..." 
+                                                    : todo.status === "pending" 
+                                                        ? "Pending" 
+                                                        : "Done"
+                                                }
+                                            </button>
+                                            
+                                            <button
+                                                onClick={() => handleEdit(todo)}
+                                                className="px-3 py-1 rounded text-sm font-semibold bg-blue-600 hover:bg-blue-700 transition-colors"
+                                            >
+                                                Edit
+                                            </button>
+                                            
+                                            <button
+                                                onClick={() => handleDelete(todo._id)}
+                                                disabled={deletingIds.has(todo._id)}
+                                                className={`px-3 py-1 rounded text-sm font-semibold transition-colors ${
+                                                    deletingIds.has(todo._id)
+                                                        ? "bg-gray-600 cursor-not-allowed"
+                                                        : "bg-red-600 hover:bg-red-700"
+                                                }`}
+                                            >
+                                                {deletingIds.has(todo._id) ? "..." : "Delete"}
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         ))
                     )}

@@ -29,7 +29,7 @@ const AppRoutes = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Auth Page */}
+
         <Route
           path="/"
           element={
@@ -42,7 +42,7 @@ const AppRoutes = () => {
         <Route path="/login" element={<Navigate to="/" replace />} />
         <Route path="/register" element={<Navigate to="/" replace />} />
 
-        {/* Home Page */}
+     
         <Route
           path="/home"
           element={

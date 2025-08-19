@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { loginSuccess, registerSuccess } from "../features/auth/authSlice";
 import { loginUser, registerUser } from "../services/api";
 import { useNavigate } from "react-router-dom";
+import { toast } from 'react-toastify';
 
 const AuthPage = () => {
   const [isLogin, setLogin] = useState(true);
@@ -51,6 +52,8 @@ const AuthPage = () => {
         });
         
         dispatch(loginSuccess(data));
+        
+        toast.success('Login success');
       } else {
        
         if (!formData.username.trim()) {
@@ -70,13 +73,14 @@ const AuthPage = () => {
         });
         
         dispatch(registerSuccess(data));
+      
+        toast.success('Registration success');
       }
 
     
       if (!data || !data.token) {
         throw new Error("No token received from server");
       }
-      
       
       console.log(`${isLogin ? 'Login' : 'Registration'} successful!`);
       
@@ -93,6 +97,8 @@ const AuthPage = () => {
       }
       
       setError(errorMessage);
+    
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -102,6 +108,8 @@ const AuthPage = () => {
     setLogin(!isLogin);
     setError("");
     setFormData({ username: "", email: "", password: "" });
+ 
+   
   };
 
   return (
@@ -110,8 +118,6 @@ const AuthPage = () => {
         <h2 className="text-2xl font-bold mb-4 text-center">
           {isLogin ? "Login" : "Register"}
         </h2>
-
-        {/* Error Display */}
         {error && (
           <div className="bg-red-600 text-white p-3 rounded mb-4 text-sm relative">
             {error}
@@ -154,13 +160,12 @@ const AuthPage = () => {
           <input
             type="password"
             name="password"
-            placeholder="Enter password (min 6 characters)"
+            placeholder="Enter password"
             value={formData.password}
             onChange={handleChange}
             className="p-2 rounded bg-gray-800 border border-gray-600 focus:border-indigo-500 focus:outline-none"
             required
             disabled={loading}
-            minLength="6"
           />
           
           <button
