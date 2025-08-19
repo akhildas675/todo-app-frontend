@@ -1,27 +1,14 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-
-import AuthPage from "./pages/AuthPage";
-import HomePage from "./pages/HomePage"; 
 import { Provider } from "react-redux";
 import store from "./app/store";
+import AppRoutes from "./AppRoutes/AppRoutes";
 
 const App = () => {
   return (
     <Provider store={store}>
-
-
-      <BrowserRouter>
-        <Routes>
-
-
-          <Route path="/" element={<AuthPage />} />
-
-          <Route path="/home" element={<HomePage />} />
-
-
-        </Routes>
-      </BrowserRouter>
+      <div className="App">
+        <AppRoutes />
+      </div>
     </Provider>
   );
 };
