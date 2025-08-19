@@ -3,8 +3,10 @@ import { setTodo, addTodo, updateTodo, deleteTodo } from '../features/todo/todoS
 import { logout } from '../features/auth/authSlice';
 import { useSelector, useDispatch } from 'react-redux';
 import { getTodoTask, addTodoTask, editTodoTask, deleteTodoTask } from '../services/todoServices';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify'; 
+
+
 
 const HomePage = () => {
     const { user, token, isAuthenticated } = useSelector((state) => state.auth);
@@ -286,6 +288,15 @@ const HomePage = () => {
                     >
                         {addingTask ? 'Adding...' : 'Add Task'}
                     </button>
+
+                   <Link to='/assign'>
+
+                  <p style={{ color: "blue" }}>Go to Assign </p>
+
+
+
+                   </Link>
+                  
                 </div>
 
                 

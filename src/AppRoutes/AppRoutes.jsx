@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import AuthPage from "../pages/AuthPage";
 import HomePage from "../pages/HomePage";
+import TodoTask from "../pages/TodoTask";
+// import Dashboard from "../pages/Dashboard";
 
 //protect route 
 const ProtectedRoute = ({ children }) => {
@@ -41,6 +43,8 @@ const AppRoutes = () => {
         <Route path="/auth" element={<Navigate to="/" replace />} />
         <Route path="/login" element={<Navigate to="/" replace />} />
         <Route path="/register" element={<Navigate to="/" replace />} />
+        <Route path="/assign" element={<TodoTask/>} />
+        {/* <Route path="/dashboard" element={<Dashboard />} /> */}
 
      
         <Route

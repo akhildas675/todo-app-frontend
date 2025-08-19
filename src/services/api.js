@@ -35,4 +35,17 @@ const loginUser = async (userData) => {
   }
 };
 
-export { registerUser, loginUser };
+const getAllUsers =async()=>{
+  try {
+
+    const res = await API.get("/getUsers");
+    console.log("I got the Users",res.data)
+    return res.data;
+
+    
+  } catch (error) {
+    console.error('fetch Error',error.message)
+  }
+}
+
+export { registerUser, loginUser, getAllUsers };
