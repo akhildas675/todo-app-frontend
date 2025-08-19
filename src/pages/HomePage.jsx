@@ -4,7 +4,7 @@ import { logout } from '../features/auth/authSlice';
 import { useSelector, useDispatch } from 'react-redux';
 import { getTodoTask, addTodoTask, editTodoTask, deleteTodoTask } from '../services/todoServices';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify'; // Import toast
+import { toast } from 'react-toastify'; 
 
 const HomePage = () => {
     const { user, token, isAuthenticated } = useSelector((state) => state.auth);
@@ -32,7 +32,7 @@ const HomePage = () => {
         }
     }, [isAuthenticated, token, navigate]);
 
-    // data fetch
+  
     useEffect(() => {
         const fetchTodos = async () => {
             if (!isAuthenticated || !token) return;
@@ -41,12 +41,12 @@ const HomePage = () => {
                 setError('');
                 const data = await getTodoTask();
                 dispatch(setTodo(data));
-                // Show success toast when tasks are loaded
+               
                 toast.success('Tasks loaded successfully!');
             } catch (error) {
                 console.error('Fetch todos error:', error);
                 setError(error.message || 'Failed to fetch todos');
-                // Show error toast
+              
                 toast.error(error.message || 'Failed to fetch todos');
                 
                 if (error.message.includes('token') || error.message.includes('unauthorized')) {
@@ -78,8 +78,8 @@ const HomePage = () => {
             dispatch(addTodo(newTask));
             setTask('');
             setDescription('');
-            // Show success toast
-            toast.success('Task added successfully! 🎉');
+            
+            toast.success('Task added success');
         } catch (error) {
             console.error('Add task error:', error);
             setError(error.message || 'Failed to add task');
@@ -151,7 +151,7 @@ const HomePage = () => {
             
             await deleteTodoTask(id);
             dispatch(deleteTodo(id));
-            // Show success toast
+          
             toast.success('Task deleted successfully! 🗑️');
         } catch (error) {
             console.error('Delete task error:', error);

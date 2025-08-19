@@ -31,7 +31,7 @@ export const getTodoTask = async () => {
 
 export const addTodoTask = async (todoData) => {
   try {
-    console.log("Adding todo:", todoData); // Debug log
+    console.log("Adding todo:", todoData); 
     
   
     if (!todoData.task || todoData.task.trim() === "") {

@@ -7,7 +7,11 @@ const API = axios.create({
   },
 });
 
-// Register user
+
+
+
+
+// register
 const registerUser = async (userData) => {
   try {
     console.log('Registering user:', userData);
@@ -19,7 +23,7 @@ const registerUser = async (userData) => {
   }
 };
 
-// Login user
+// login 
 const loginUser = async (userData) => {
   try {
     console.log('Logging in user:', userData);
