@@ -139,7 +139,6 @@ const AuthPage = () => {
               value={formData.username}
               onChange={handleChange}
               className="p-2 rounded bg-gray-800 border border-gray-600 focus:border-indigo-500 focus:outline-none"
-              required
               disabled={loading}
               minLength="2"
               maxLength="50"
@@ -153,7 +152,7 @@ const AuthPage = () => {
             value={formData.email}
             onChange={handleChange}
             className="p-2 rounded bg-gray-800 border border-gray-600 focus:border-indigo-500 focus:outline-none"
-            required
+          
             disabled={loading}
           />
           
@@ -164,7 +163,7 @@ const AuthPage = () => {
             value={formData.password}
             onChange={handleChange}
             className="p-2 rounded bg-gray-800 border border-gray-600 focus:border-indigo-500 focus:outline-none"
-            required
+            
             disabled={loading}
           />
           
