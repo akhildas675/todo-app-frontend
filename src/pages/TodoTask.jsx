@@ -1,14 +1,29 @@
 import { useEffect, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "../features/auth/authSlice";
 import { getAllUsers } from "../services/api";
 import { getUserTasks, assignTask } from '../services/todoServices';
 import { toast } from 'react-toastify'; 
 
 const TodoTask = () => {
+    const { token, isAuthenticated } = useSelector((state) => state.auth);
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    
     const [users, setUsers] = useState([]);
     const [tasks, setTasks] = useState([]);
     const [selectedTask, setSelectedTask] = useState(null);
     const [selectedUser, setSelectedUser] = useState("");
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        if (!isAuthenticated || !token) {
+            navigate('/auth');
+            return;
+        }
+    }, [isAuthenticated, token, navigate]);
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -16,7 +31,9 @@ const TodoTask = () => {
                 const data = await getAllUsers();
                 setUsers(data);
             } catch (error) {
-                console.error(error);
+                console.error("Fetch users error:", error);
+                setError("Failed to load users");
+                toast.error("Failed to load users");
             }
         };
         fetchUsers();
@@ -28,15 +45,27 @@ const TodoTask = () => {
                 const data = await getUserTasks();
                 setTasks(data);
             } catch (error) {
-                console.error(error);
+                console.error("Fetch tasks error:", error);
+                setError("Failed to load tasks");
+                toast.error("Failed to load tasks");
+                
+                if (error.message && (error.message.includes('token') || error.message.includes('unauthorized'))) {
+                    handleLogout();
+                }
             }
         };
         fetchTasks();
     }, []);
 
+    const handleLogout = () => {
+        dispatch(logout());
+        navigate('/auth');
+        toast.info('Logged out successfully');
+    };
+
     const handleAssign = async (taskId) => {
         if (!selectedUser) {
-            toast.info("select a user to assign ")
+            toast.info("Please select a user to assign the task to");
             return;
         }
 
@@ -47,87 +76,162 @@ const TodoTask = () => {
             setTasks(updatedTasks);
             setSelectedTask(null);
             setSelectedUser("");
-            toast.success("Task assigned successfully!")
+            setError("");
+            toast.success("Task assigned successfully!");
         } catch (error) {
             console.error("Assignment error:", error);
-            toast.error('Failed to assign')
+            setError(error.message || "Failed to assign task");
+            toast.error(error.message || 'Failed to assign task');
         } finally {
             setLoading(false);
         }
     };
 
-    return (
-        <div style={{
-            minHeight: "100vh",
-            backgroundColor: "black",
-            color: "white",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            padding: "20px"
-        }}>
-            <div style={{ width: "100%", maxWidth: "700px", textAlign: "center" }}>
-                <h1 style={{ marginBottom: "20px" }}>Task Assignment</h1>
+    const formatDate = (dateString) => {
+        return new Date(dateString).toLocaleDateString();
+    };
 
-                <div style={{ marginBottom: "25px"}}>
-                    <h2 style={{ marginBottom: "10px" }}>Available Users</h2>
-                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "center" }}>
-                        {users.map((user) => (
-                            <div
-                                key={user._id}
-                                style={{
-                                    padding: "6px 12px",
-                                    border: "1px solid #444",
-                                    borderRadius: "5px",
-                                    background: "#222",
-                                    fontSize: "14px"
-                                }}
-                            >
-                                {user.name}
-                            </div>
-                        ))}
+    return (
+        <div className="bg-black min-h-screen">
+            <div className="container mx-auto px-4 py-6 max-w-4xl">
+
+                {error && (
+                    <div className="bg-red-600 text-white p-3 rounded mb-6 text-sm">
+                        {error}
+                        <button 
+                            onClick={() => setError('')} 
+                            className="ml-2 font-bold"
+                        >
+                            ×
+                        </button>
+                    </div>
+                )}
+     
+                <div className="flex justify-between items-center mb-6">
+                    <div>
+                        <h1 className="text-3xl font-bold text-white">Task Assignment</h1>
+                        <p className="text-gray-400">Assign your tasks to team members</p>
+                    </div>
+                    <div className="flex gap-3">
+                        <Link
+                            to="/home"
+                            className="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded text-white font-semibold transition-colors"
+                        >
+                            My Tasks
+                        </Link>
+                        <Link
+                            to="/dashboard"
+                            className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded text-white font-semibold transition-colors"
+                        >
+                            Dashboard
+                        </Link>
+                        <button
+                            onClick={handleLogout}
+                            className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-white font-semibold transition-colors"
+                        >
+                            Logout
+                        </button>
                     </div>
                 </div>
 
-                <div>
-                    <h2 style={{ marginBottom: "10px" }}>My Tasks</h2>
-                    {tasks.length === 0 ? (
-                        <p>No tasks available</p>
+              
+
+            
+                <div className="mb-8">
+                    <h2 className="text-xl font-bold text-white mb-4 flex items-center">
+                        Available Users
+                        <span className="ml-3 bg-indigo-600 text-white px-2 py-1 rounded-full text-sm">
+                            {users.length}
+                        </span>
+                    </h2>
+                    {users.length === 0 ? (
+                        <div className="text-center text-gray-400 py-8 bg-gray-800 rounded-lg">
+                            <p>No users available</p>
+                        </div>
                     ) : (
-                        <ul style={{ listStyle: "none", padding: 0 }}>
-                            {tasks.map((task) => (
-                                <li
-                                    key={task._id}
-                                    style={{
-                                        padding: "12px",
-                                        border: "1px solid #444",
-                                        borderRadius: "5px",
-                                        marginBottom: "10px",
-                                        background: "#1a1a1a",
-                                        fontSize: "14px",
-                                        textAlign: "left"
-                                    }}
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                            {users.map((user) => (
+                                <div
+                                    key={user._id}
+                                    className="p-3 bg-gray-800 rounded-lg border border-gray-700 text-center"
                                 >
-                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                        <div>
-                                            <strong>{task.task}</strong>
-                                            {task.description && <p style={{ margin: "4px 0", color: "#aaa", fontSize: "13px" }}>{task.description}</p>}
-                                            <small style={{ color: "#bbb", fontSize: "12px" }}>
-                                                Status: {task.status} | Created: {new Date(task.createdAt).toLocaleDateString()}
-                                            </small>
-                                            {task.assignedTo && (
-                                                <p style={{ margin: "4px 0", color: "#4da6ff", fontSize: "13px" }}>
-                                                    Assigned to: {task.assignedTo.name}
+                                    <div className="text-white font-medium">{user.name}</div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+             
+                <div>
+                    <h2 className="text-xl font-bold text-white mb-4 flex items-center">
+                        My Tasks
+                        <span className="ml-3 bg-blue-600 text-white px-2 py-1 rounded-full text-sm">
+                            {tasks.length}
+                        </span>
+                    </h2>
+                    
+                    {tasks.length === 0 ? (
+                        <div className="text-center text-gray-400 py-8 bg-gray-800 rounded-lg">
+                            <p>No tasks available to assign</p>
+                            <Link 
+                                to="/home"
+                                className="inline-block mt-3 text-indigo-400 hover:text-indigo-300 underline"
+                            >
+                                Create your first task
+                            </Link>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {tasks.map((task) => (
+                                <div
+                                    key={task._id}
+                                    className="p-4 bg-gray-800 rounded-lg border border-gray-700"
+                                >
+                                    <div className="flex justify-between items-start">
+                                        <div className="flex-1">
+                                            <h3 className={`text-lg font-semibold ${
+                                                task.status === "completed" 
+                                                    ? "line-through text-gray-400" 
+                                                    : "text-white"
+                                            }`}>
+                                                {task.task}
+                                            </h3>
+                                            
+                                            {task.description && (
+                                                <p className={`text-sm mt-1 ${
+                                                    task.status === "completed" 
+                                                        ? "text-gray-500" 
+                                                        : "text-gray-300"
+                                                }`}>
+                                                    {task.description}
                                                 </p>
                                             )}
+                                            
+                                            <div className="flex flex-wrap gap-3 text-xs text-gray-400 mt-2">
+                                                <span className={`px-2 py-1 rounded ${
+                                                    task.status === "completed" 
+                                                        ? "bg-green-600 text-white" 
+                                                        : "bg-yellow-600 text-white"
+                                                }`}>
+                                                    {task.status}
+                                                </span>
+                                                <span>Created: {formatDate(task.createdAt)}</span>
+                                                {task.assignedTo && (
+                                                    <span className="text-blue-400">
+                                                        Assigned to: {task.assignedTo.name}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
-                                        <div>
+                                        
+                                        <div className="ml-4">
                                             {selectedTask === task._id ? (
-                                                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                                                <div className="flex flex-col gap-2 min-w-[200px]">
                                                     <select
                                                         value={selectedUser}
                                                         onChange={(e) => setSelectedUser(e.target.value)}
-                                                        style={{ padding: "4px", fontSize: "13px" }}
+                                                        className="p-2 bg-gray-700 border border-gray-600 rounded text-white focus:border-indigo-500 focus:outline-none"
                                                     >
                                                         <option value="">Select User</option>
                                                         {users.map((user) => (
@@ -136,60 +240,49 @@ const TodoTask = () => {
                                                             </option>
                                                         ))}
                                                     </select>
-                                                    <button
-                                                        onClick={() => handleAssign(task._id)}
-                                                        disabled={loading}
-                                                        style={{
-                                                            background: "#040605",
-                                                            color: "white",
-                                                            padding: "4px 8px",
-                                                            border: "none",
-                                                            borderRadius: "3px",
-                                                            fontSize: "13px",
-                                                            cursor: loading ? "not-allowed" : "pointer"
-                                                        }}
-                                                    >
-                                                        {loading ? "Assigning..." : "Confirm"}
-                                                    </button>
-                                                    <button
-                                                        onClick={() => {
-                                                            setSelectedTask(null);
-                                                            setSelectedUser("");
-                                                        }}
-                                                        style={{
-                                                            background: "#6c757d",
-                                                            color: "white",
-                                                            padding: "4px 8px",
-                                                            border: "none",
-                                                            borderRadius: "3px",
-                                                            fontSize: "13px",
-                                                            cursor: "pointer"
-                                                        }}
-                                                    >
-                                                        Cancel
-                                                    </button>
+                                                    
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => handleAssign(task._id)}
+                                                            disabled={loading || !selectedUser}
+                                                            className={`flex-1 py-2 px-3 rounded text-sm font-semibold transition-colors ${
+                                                                loading || !selectedUser
+                                                                    ? "bg-gray-600 cursor-not-allowed"
+                                                                    : "bg-green-600 hover:bg-green-700"
+                                                            }`}
+                                                        >
+                                                            {loading ? "Assigning..." : "Confirm"}
+                                                        </button>
+                                                        
+                                                        <button
+                                                            onClick={() => {
+                                                                setSelectedTask(null);
+                                                                setSelectedUser("");
+                                                            }}
+                                                            className="flex-1 py-2 px-3 bg-gray-600 hover:bg-gray-700 rounded text-sm font-semibold transition-colors"
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             ) : (
                                                 <button
                                                     onClick={() => setSelectedTask(task._id)}
-                                                    style={{
-                                                        background: "yellow",
-                                                        color: "black",
-                                                        padding: "6px 12px",
-                                                        border: "none",
-                                                        borderRadius: "3px",
-                                                        fontSize: "13px",
-                                                        cursor: "pointer"
-                                                    }}
+                                                    disabled={task.assignedTo}
+                                                    className={`py-2 px-4 rounded text-sm font-semibold transition-colors ${
+                                                        task.assignedTo
+                                                            ? "bg-gray-600 cursor-not-allowed text-gray-400"
+                                                            : "bg-yellow-600 hover:bg-yellow-700 text-black"
+                                                    }`}
                                                 >
-                                                    Assign
+                                                    {task.assignedTo ? "Already Assigned" : "Assign"}
                                                 </button>
                                             )}
                                         </div>
                                     </div>
-                                </li>
+                                </div>
                             ))}
-                        </ul>
+                        </div>
                     )}
                 </div>
             </div>

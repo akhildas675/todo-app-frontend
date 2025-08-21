@@ -1,52 +1,111 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-
-const getInitialState = () => {
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-    
-    return {
-        user: userData ? JSON.parse(userData) : null,
-        token: token,
-        isAuthenticated: !!token
-    };
+const initialState = {
+  user: null,
+  token: null,
+  isAuthenticated: false,
+  loading: false,
+  error: null,
 };
 
 const authSlice = createSlice({
-    name: 'auth',
-    initialState: getInitialState(),
-    reducers: {
-        loginSuccess: (state, action) => {
-            state.user = action.payload.user;
-            state.token = action.payload.token;
-            state.isAuthenticated = true;
-            
-           
-            localStorage.setItem('token', action.payload.token);
-            
-        },
+  name: "auth",
+  initialState,
+  reducers: {
+    loginStart: (state) => {
+      state.loading = true;
+      state.error = null;
+    },
 
-        registerSuccess: (state, action) => {
-            state.user = action.payload.user;
-            state.token = action.payload.token;
-            state.isAuthenticated = true;
-            
-            localStorage.setItem('token', action.payload.token);
-           
-        },
+    loginSuccess: (state, action) => {
+      state.loading = false;
+      state.isAuthenticated = true;
+      state.user = action.payload.user;
+      state.token = action.payload.token;
+      state.error = null;
 
-        logout: (state) => {
-            state.user = null;
-            state.token = null;
-            state.isAuthenticated = false;
-            
-            
-            localStorage.removeItem('token');
-           
-        }
-    }
+
+      localStorage.setItem("token", action.payload.token);
+      localStorage.setItem("user", JSON.stringify(action.payload.user));
+    },
+
+    loginFailure: (state, action) => {
+      state.loading = false;
+      state.isAuthenticated = false;
+      state.user = null;
+      state.token = null;
+      state.error = action.payload;
+
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+    },
+
+    registerStart: (state) => {
+      state.loading = true;
+      state.error = null;
+    },
+
+    registerSuccess: (state, action) => {
+      state.loading = false;
+      state.isAuthenticated = true;
+      state.user = action.payload.user;
+      state.token = action.payload.token;
+      state.error = null;
+
+
+      localStorage.setItem("token", action.payload.token);
+      localStorage.setItem("user", JSON.stringify(action.payload.user));
+    },
+
+    registerFailure: (state, action) => {
+      state.loading = false;
+      state.isAuthenticated = false;
+      state.user = null;
+      state.token = null;
+      state.error = action.payload;
+
+   
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+    },
+
+    logout: (state) => {
+      state.user = null;
+      state.token = null;
+      state.isAuthenticated = false;
+      state.loading = false;
+      state.error = null;
+
+      
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+    },
+
+    clearError: (state) => {
+      state.error = null;
+    },
+
+
+    restoreAuth: (state, action) => {
+      if (action.payload.token && action.payload.user) {
+        state.isAuthenticated = true;
+        state.user = action.payload.user;
+        state.token = action.payload.token;
+      }
+    },
+  },
 });
 
-export const { loginSuccess, registerSuccess, logout } = authSlice.actions;
+export const {
+  loginStart,
+  loginSuccess,
+  loginFailure,
+  registerStart,
+  registerSuccess,
+  registerFailure,
+  logout,
+  clearError,
+  restoreAuth,
+} = authSlice.actions;
 
 export default authSlice.reducer;
