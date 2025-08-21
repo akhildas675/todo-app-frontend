@@ -5,16 +5,23 @@ import { combineReducers } from '@reduxjs/toolkit';
 import authReducer, { restoreAuth } from '../features/auth/authSlice';
 import todoReducer from '../features/todo/todoSlice';
 
+// Persist configuration
+const persistConfig = {
+  key: 'root',
+  storage,
+  whitelist: ['auth'] // Only persist auth state
+};
 
-// combined reducers
+// Combine reducers
 const rootReducer = combineReducers({
   auth: authReducer,
   todos: todoReducer,
 });
 
+// Create persisted reducer
+const persistedReducer = persistReducer(persistConfig, rootReducer);
 
-
-//store
+// Configure store
 export const store = configureStore({
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
@@ -25,30 +32,10 @@ export const store = configureStore({
     }),
 });
 
-
-
-// persist config
-const persistConfig = {
-  key: 'root',
-  storage,
-  whitelist: ['auth','todos'] 
-};
-// persisted reducer
-const persistedReducer = persistReducer(persistConfig, rootReducer);
-
-
-
-
-
-
-// persistor
+// Create persistor
 export const persistor = persistStore(store);
 
-
-
-
-
-
+// Restore authentication state on app startup
 const initializeAuth = () => {
   const token = localStorage.getItem('token');
   const user = localStorage.getItem('user');
@@ -65,7 +52,7 @@ const initializeAuth = () => {
   }
 };
 
-
+// Initialize auth state
 initializeAuth();
 
 export default store;
