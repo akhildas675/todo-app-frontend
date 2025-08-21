@@ -63,7 +63,7 @@ const Dashboard = () => {
             
             const newStatus = currentStatus === "pending" ? "completed" : "pending";
             
-            // Find the task to get its current data
+            
             const task = [...dashboardData.assignedByMe, ...dashboardData.assignedToMe]
                 .find(t => t._id === taskId);
                 
@@ -76,7 +76,6 @@ const Dashboard = () => {
                 status: newStatus
             });
             
-            // Refresh dashboard data
             const updatedData = await getDashboardTasks();
             setDashboardData(updatedData);
             
@@ -234,7 +233,7 @@ const Dashboard = () => {
                     </div>
                 </div>
 
-                {/* Error Display */}
+                
                 {error && (
                     <div className="bg-red-600 text-white p-3 rounded mb-6 text-sm">
                         {error}
@@ -247,7 +246,7 @@ const Dashboard = () => {
                     </div>
                 )}
 
-                {/* Summary Stats */}
+               
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                     <div className="bg-gray-800 p-4 rounded-lg text-center">
                         <div className="text-2xl font-bold text-indigo-400">
@@ -277,7 +276,7 @@ const Dashboard = () => {
                     </div>
                 </div>
 
-                {/* Timeline Sections */}
+                
                 <div className="space-y-8">
                     <TimelineSection 
                         title="Tasks Assigned by Me"

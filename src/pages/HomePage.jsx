@@ -53,6 +53,7 @@ const HomePage = () => {
         };
 
         fetchTodos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dispatch, isAuthenticated, token, navigate]);
 
     const handleAddTask = async () => {
