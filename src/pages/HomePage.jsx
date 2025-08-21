@@ -416,14 +416,27 @@ const HomePage = () => {
                                                         : "Done"
                                                 }
                                             </button>
-                                            
-                                            <button
+
+                                                
+                                                 {updatingIds.has(todo._id) 
+                                                    ? "..." 
+                                                    : todo.status === "pending" 
+                                                        ?  <button
                                                 onClick={() => handleEdit(todo)}
                                                 className="px-3 py-1 rounded text-sm font-semibold bg-blue-600 hover:bg-blue-700 transition-colors"
                                             >
                                                 Edit
                                             </button>
-                                            
+                                                        : ""
+                                                }
+
+{/*                                             
+                                            <button
+                                                onClick={() => handleEdit(todo)}
+                                                className="px-3 py-1 rounded text-sm font-semibold bg-blue-600 hover:bg-blue-700 transition-colors"
+                                            >
+                                                Edit
+                                            </button> */}
                                             <button
                                                 onClick={() => handleDelete(todo._id)}
                                                 disabled={deletingIds.has(todo._id)}
@@ -440,6 +453,7 @@ const HomePage = () => {
                                 )}
                             </div>
                         ))
+                                            
                     )}
                 </div>
             </div>
